@@ -32,6 +32,15 @@ dotenv.config();
             if (detailedPull.mergeable == false) {
                 conflictsCount++;
                 console.log(`PR #${pull.number}: ${pull.title}`);
+
+                await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
+                    owner: 'material-extensions',
+                    repo: 'vscode-material-icon-theme',
+                    issue_number: pull.number,
+                    labels: ['merge-conflicts'],
+                });
+
+                console.log('Marked this PR with the label "merge-conflicts"');
             }
         }
         page++;
