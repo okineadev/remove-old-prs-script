@@ -29,18 +29,31 @@ dotenv.config();
                 pull_number: pull.number,
             });
 
-            if (detailedPull.mergeable == false) {
+            if (detailedPull.state === 'open' && detailedPull.mergeable == false) {
                 conflictsCount++;
                 console.log(`PR #${pull.number}: ${pull.title}`);
 
-                await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
+                await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
                     owner: 'material-extensions',
                     repo: 'vscode-material-icon-theme',
                     issue_number: pull.number,
-                    labels: ['merge-conflicts'],
+                    body: `To improve the quality and to reduce the maintenance effort regular refactoring of the project is inevitable. As much as we appreciate your work and contribution in this pull request, we realised that it was created a while ago and some merge conflicts occurred. 
+                    
+We have decided to close all PRs that no longer correspond to the current code base. This gives us the opportunity to provide a better overview of the remaining open PRs. 
+                    
+We would like to offer you to update your changes to the main branch and reopen the PR if the contribution is still relevant for you. Please contact us, we will be happy to help you resolve any conflicts. 
+                    
+Thank you for your attention and good collaboration.`,
                 });
 
-                console.log('Marked this PR with the label "merge-conflicts"');
+                await octokit.request('PATCH /repos/{owner}/{repo}/pulls/{pull_number}', {
+                    owner: 'material-extensions',
+                    repo: 'vscode-material-icon-theme',
+                    pull_number: pull.number,
+                    state: 'closed',
+                });
+
+                console.log('Added a comment and closed this PR');
             }
         }
         page++;
